@@ -108,23 +108,25 @@ jobs:
 
       - name: Determine release tag
         id: release
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          WORKFLOW_RUN_NAME: ${{ github.event.workflow_run.name }}
+          WORKFLOW_RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           set -euo pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "tag=$INPUT_TAG" >> "$GITHUB_OUTPUT"
           else
-            WORKFLOW_NAME="${{ github.event.workflow_run.name }}"
-            if [ "$WORKFLOW_NAME" = "Release Dev" ]; then
+            if [ "$WORKFLOW_RUN_NAME" = "Release Dev" ]; then
               echo "tag=dev" >> "$GITHUB_OUTPUT"
-            elif [ "$WORKFLOW_NAME" = "Release Tag" ]; then
-              TAG="${{ github.event.workflow_run.head_branch }}"
-              if [ -z "$TAG" ]; then
+            elif [ "$WORKFLOW_RUN_NAME" = "Release Tag" ]; then
+              if [ -z "$WORKFLOW_RUN_HEAD_BRANCH" ]; then
                 echo "::error::Could not determine release tag from workflow_run"
                 exit 1
               fi
-              echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+              echo "tag=${WORKFLOW_RUN_HEAD_BRANCH}" >> "$GITHUB_OUTPUT"
             else
-              echo "::error::Unexpected triggering workflow: ${WORKFLOW_NAME}"
+              echo "::error::Unexpected triggering workflow: ${WORKFLOW_RUN_NAME}"
               exit 1
             fi
           fi
