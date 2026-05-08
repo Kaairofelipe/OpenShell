@@ -72,10 +72,12 @@ jobs:
 
       - name: Compute cargo version
         id: version
+        env:
+          INPUT_CARGO_VERSION: ${{ inputs.cargo-version }}
         run: |
           set -eu
-          if [[ -n "${{ inputs.cargo-version }}" ]]; then
-            echo "cargo_version=${{ inputs.cargo-version }}" >> "$GITHUB_OUTPUT"
+          if [[ -n "$INPUT_CARGO_VERSION" ]]; then
+            echo "cargo_version=$INPUT_CARGO_VERSION" >> "$GITHUB_OUTPUT"
           else
             echo "cargo_version=$(uv run python tasks/scripts/release.py get-version --cargo)" >> "$GITHUB_OUTPUT"
           fi
@@ -93,4 +95,5 @@ jobs:
           # Enable dev-settings feature for test settings (dummy_bool, dummy_int)
           # used by e2e tests.
           EXTRA_CARGO_FEATURES: openshell-core/dev-settings
-        run: mise run --no-prepare docker:build:${{ inputs.component }}
+          INPUT_COMPONENT: ${{ inputs.component }}
+        run: mise run --no-prepare docker:build:$INPUT_COMPONENT
